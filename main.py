@@ -95,6 +95,12 @@ def parser(link: str) -> dict:
         parse_data["speed"] = float(data_with_position[5].find("b").text.split()[0])
         print("Get speed")
 
+        text = body.find("div",
+                         class_="MuiGrid-root MuiGrid-container MuiGrid-spacing-xs-2 css-isbt42").find(
+            "div", class_="MuiGrid-root MuiGrid-item css-1wxaqej").find("div")["style"]
+        parse_data["longitude"], parse_data["latitude"] = map(float, text.split("(")[2].split(")")[
+            0].split(","))
+
         return parse_data
     except Exception as ex:
         print(ex)
