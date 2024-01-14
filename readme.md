@@ -1,3 +1,4 @@
-start command: 
-
-`main.py [list of linsk]`
+start command:
+```console
+main.py [list of linsk]
+```
