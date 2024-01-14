@@ -118,7 +118,7 @@ def main():
             time.sleep(15)
             link_data = parser(link)
         data.append(link_data)
-        pprint.pprint(data)
+        pprint.pprint(link_data)
 
     with open(f'static/{time_now}.json', 'w') as f:
         json.dump(data, f)
