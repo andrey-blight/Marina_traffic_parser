@@ -2,6 +2,7 @@ import pprint
 import time
 import random
 import sys
+import json
 
 from selenium import webdriver
 from selenium.webdriver.common.proxy import *
@@ -100,15 +101,21 @@ def parser(link: str) -> dict:
 
 
 def main():
+    time_now = datetime.now().isoformat()
+    data = []
     links = sys.argv[1:]
     for link in links:
         print("Link now:", link)
-        data = parser(link)
-        while data is None:
+        link_data = parser(link)
+        while link_data is None:
             print(f"link: {link} failed. Try again after 15 seconds")
             time.sleep(15)
-            data = parser(link)
+            link_data = parser(link)
+        data.append(link_data)
         pprint.pprint(data)
+
+    with open(f'static/{time_now}.json', 'w') as f:
+        json.dump(data, f)
 
 
 if __name__ == '__main__':
