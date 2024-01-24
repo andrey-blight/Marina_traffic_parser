@@ -1,7 +1,6 @@
 import pprint
 import time
 import random
-import sys
 import json
 
 from selenium import webdriver
@@ -33,6 +32,7 @@ def _get_driver():
 def _get_html_page(link: str, count_scroll: int = 8) -> str:
     driver = _get_driver()
     driver.get(link)
+    time.sleep(1)
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
     time.sleep(1.24)
     for i in range(count_scroll):
@@ -41,8 +41,9 @@ def _get_html_page(link: str, count_scroll: int = 8) -> str:
     return driver.page_source
 
 
-def parser(link: str) -> dict:
+def parser(imo_code: int) -> dict:
     try:
+        link = f"https://www.marinetraffic.com/en/ais/details/ships/imo:{imo_code}"
         html_page = _get_html_page(link)
         print("Get page")
         parse_data = {"call_time": datetime.now().isoformat(),
@@ -89,11 +90,14 @@ def parser(link: str) -> dict:
 
         data_with_position = body.findAll("p",
                                           class_="MuiTypography-root MuiTypography-body1 MuiTypography-gutterBottom css-1f2xc97")
-        parse_data["position_received"] = data_with_position[0].find("b").text
-        print("Get position received")
-
-        parse_data["speed"] = float(data_with_position[5].find("b").text.split()[0])
-        print("Get speed")
+        data_with_position = [el.text.split(":") for el in data_with_position]
+        for el in data_with_position:
+            if el[0] == "Position received":
+                parse_data["position_received"] = el[1][1:]
+                print("Get position received")
+            if el[0] == "Speed/Course":
+                parse_data["speed"] = float(el[1][1:].split()[0])
+                print("Get speed")
 
         text = body.find("div",
                          class_="MuiGrid-root MuiGrid-container MuiGrid-spacing-xs-2 css-isbt42").find(
@@ -108,21 +112,18 @@ def parser(link: str) -> dict:
 
 def main():
     time_now = datetime.now().isoformat()
-    data = []
-    links = sys.argv[1:]
-    for link in links:
-        print("Link now:", link)
-        link_data = parser(link)
-        while link_data is None:
-            print(f"link: {link} failed. Try again after 15 seconds")
-            time.sleep(15)
-            link_data = parser(link)
-        data.append(link_data)
-        pprint.pprint(link_data)
+    imo_code = int(input())  # TODO: Как появится доступ к бд переписать получение imo code
+    print("Imo code:", imo_code)
+    link_data = parser(imo_code)
+    while link_data is None:
+        print(f"imo code: {imo_code} failed. Try again after 15 seconds")
+        time.sleep(15)
+        link_data = parser(imo_code)
+    pprint.pprint(link_data)
 
     with open(f'static/{time_now}.json', 'w') as f:
-        json.dump(data, f)
+        json.dump(link_data, f)
 
 
 if __name__ == '__main__':
-    main()
+    main()  # Test imo: 9768526
